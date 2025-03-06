@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simplicity</title>
+    <style>
+        :root {
+            --primary-color: #FFF3E0; /* Pale Yellow */
+            --secondary-color: #6F4E37; /* Coffee Brown */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        /* Loader Styles */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader-logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--secondary-color);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        /* Project Post Styles */
+        .project-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary-color);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        /* Create Project Button */
+        .create-project {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background: var(--secondary-color);
+            color: var(--primary-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .container {
+                padding-top: 60px;
+            }
+            .nav-bar {
+                top: 0;
+                bottom: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader">
+        <div class="loader-logo">Simplicity</div>
+        <div>By JOSNA ICT club</div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Simplicity</h1>
+        </header>
+
+        <!-- Projects Feed -->
+        <div class="projects-feed">
+            <!-- Project cards will be dynamically added here -->
+        </div>
+
+        <!-- Create Project Button -->
+        <div class="create-project" onclick="showProjectForm()">+</div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-item">Home</div>
+        <div class="nav-item">Projects</div>
+        <div class="nav-item">Profile</div>
+    </nav>
+
+    <script>
+        // Loader timeout
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.querySelector('.loader').style.display = 'none';
+            }, 2000);
+        });
+
+        // Project creation functionality
+        function showProjectForm() {
+            // Add your project creation modal logic here
+            const form = `
+                <div class="project-form">
+                    <h3>Create New Project</h3>
+                    <input type="text" placeholder="Project Title">
+                    <textarea placeholder="Project Description"></textarea>
+                    <input type="file" accept="image/*">
+                    <input type="number" placeholder="Progress %" min="0" max="100">
+                    <button onclick="createProject()">Post Project</button>
+                </div>
+            `;
+            // Add modal display logic
+        }
+
+        function createProject() {
+            // Add project creation logic
+        }
+
+        // Add navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Add navigation logic
+            });
+        });
+    </script>
+</body>
+</html>
