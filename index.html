@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simplicity</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <style>
         :root {
-            --primary-color: #FFF3E0; /* Pale Yellow */
-            --secondary-color: #6F4E37; /* Coffee Brown */
+            --primary-color: #FFF3E0;
+            --secondary-color: #6F4E37;
         }
 
         * {
@@ -43,14 +47,7 @@
             margin-bottom: 1rem;
         }
 
-        /* Main Container */
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Navigation Bar */
+        /* Navigation */
         .nav-bar {
             position: fixed;
             bottom: 0;
@@ -66,7 +63,14 @@
             cursor: pointer;
         }
 
-        /* Project Post Styles */
+        /* Projects Feed */
+        .projects-feed {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
         .project-card {
             background: white;
             border-radius: 10px;
@@ -87,34 +91,38 @@
             height: 100%;
             background: var(--secondary-color);
             border-radius: 5px;
+            width: 0;
             transition: width 0.3s ease;
         }
 
-        /* Create Project Button */
-        .create-project {
+        /* Modals */
+        .modal {
+            display: none;
             position: fixed;
-            bottom: 70px;
-            right: 20px;
-            background: var(--secondary-color);
-            color: var(--primary-color);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
             justify-content: center;
-            cursor: pointer;
+            align-items: center;
         }
 
-        /* Responsive Design */
-        @media (min-width: 768px) {
-            .container {
-                padding-top: 60px;
-            }
-            .nav-bar {
-                top: 0;
-                bottom: auto;
-            }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        /* Auth Forms */
+        .auth-form {
+            display: none;
+        }
+
+        .active-form {
+            display: block;
         }
     </style>
 </head>
@@ -125,62 +133,202 @@
         <div>By JOSNA ICT club</div>
     </div>
 
+    <!-- Main Content -->
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>Simplicity</h1>
-        </header>
-
-        <!-- Projects Feed -->
-        <div class="projects-feed">
-            <!-- Project cards will be dynamically added here -->
-        </div>
-
-        <!-- Create Project Button -->
-        <div class="create-project" onclick="showProjectForm()">+</div>
+        <div class="projects-feed" id="projectsFeed"></div>
     </div>
 
-    <!-- Navigation Bar -->
+    <!-- Create Project Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <h2>Create Project</h2>
+            <input type="text" id="projectTitle" placeholder="Title">
+            <textarea id="projectDesc" placeholder="Description"></textarea>
+            <input type="number" id="projectProgress" placeholder="Progress %" min="0" max="100">
+            <input type="file" id="projectImage" accept="image/*">
+            <button onclick="createProject()">Create</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Auth Modals -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="auth-form active-form" id="loginForm">
+                <h2>Login</h2>
+                <input type="email" id="loginEmail" placeholder="Email">
+                <input type="password" id="loginPassword" placeholder="Password">
+                <button onclick="login()">Login</button>
+                <p>Don't have an account? <span onclick="showSignup()">Sign up</span></p>
+            </div>
+
+            <div class="auth-form" id="signupForm">
+                <h2>Sign Up</h2>
+                <input type="text" id="signupName" placeholder="Name">
+                <input type="email" id="signupEmail" placeholder="Email">
+                <input type="password" id="signupPassword" placeholder="Password">
+                <button onclick="signup()">Sign Up</button>
+                <p>Already have an account? <span onclick="showLogin()">Login</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
     <nav class="nav-bar">
-        <div class="nav-item">Home</div>
-        <div class="nav-item">Projects</div>
-        <div class="nav-item">Profile</div>
+        <div class="nav-item" onclick="showAuthModal()">Profile</div>
+        <div class="nav-item" onclick="showProjectModal()">New Project</div>
+        <div class="nav-item" onclick="logout()">Logout</div>
     </nav>
 
     <script>
-        // Loader timeout
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Loader
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.querySelector('.loader').style.display = 'none';
+                checkAuthState();
             }, 2000);
         });
 
-        // Project creation functionality
-        function showProjectForm() {
-            // Add your project creation modal logic here
-            const form = `
-                <div class="project-form">
-                    <h3>Create New Project</h3>
-                    <input type="text" placeholder="Project Title">
-                    <textarea placeholder="Project Description"></textarea>
-                    <input type="file" accept="image/*">
-                    <input type="number" placeholder="Progress %" min="0" max="100">
-                    <button onclick="createProject()">Post Project</button>
-                </div>
-            `;
-            // Add modal display logic
-        }
-
-        function createProject() {
-            // Add project creation logic
-        }
-
-        // Add navigation functionality
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                // Add navigation logic
+        // Auth State Listener
+        function checkAuthState() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    loadProjects();
+                    document.querySelector('.nav-bar').style.display = 'flex';
+                } else {
+                    showAuthModal();
+                    document.querySelector('.nav-bar').style.display = 'none';
+                }
             });
-        });
+        }
+
+        // Project Functions
+        async function createProject() {
+            const title = document.getElementById('projectTitle').value;
+            const description = document.getElementById('projectDesc').value;
+            const progress = document.getElementById('projectProgress').value;
+            const file = document.getElementById('projectImage').files[0];
+
+            try {
+                let imageUrl = '';
+                if (file) {
+                    const storageRef = storage.ref(`projects/${auth.currentUser.uid}/${Date.now()}`);
+                    const snapshot = await storageRef.put(file);
+                    imageUrl = await snapshot.ref.getDownloadURL();
+                }
+
+                await db.collection('projects').add({
+                    title,
+                    description,
+                    progress: parseInt(progress),
+                    imageUrl,
+                    userId: auth.currentUser.uid,
+                    userName: auth.currentUser.displayName,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                closeModal();
+            } catch (error) {
+                console.error('Error creating project:', error);
+            }
+        }
+
+        function loadProjects() {
+            db.collection('projects')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snapshot => {
+                    const projectsFeed = document.getElementById('projectsFeed');
+                    projectsFeed.innerHTML = '';
+                    
+                    snapshot.forEach(doc => {
+                        const project = doc.data();
+                        const projectCard = document.createElement('div');
+                        projectCard.className = 'project-card';
+                        projectCard.innerHTML = `
+                            <h3>${project.title}</h3>
+                            <p>${project.description}</p>
+                            ${project.imageUrl ? `<img src="${project.imageUrl}" style="width:100%; margin:10px 0">` : ''}
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width:${project.progress}%"></div>
+                            </div>
+                            <p>By ${project.userName}</p>
+                        `;
+                        projectsFeed.appendChild(projectCard);
+                    });
+                });
+        }
+
+        // Auth Functions
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                closeModal();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function signup() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await userCredential.user.updateProfile({ displayName: name });
+                closeModal();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        // UI Functions
+        function showProjectModal() {
+            document.getElementById('projectModal').style.display = 'flex';
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        function showSignup() {
+            document.getElementById('loginForm').classList.remove('active-form');
+            document.getElementById('signupForm').classList.add('active-form');
+        }
+
+        function showLogin() {
+            document.getElementById('signupForm').classList.remove('active-form');
+            document.getElementById('loginForm').classList.add('active-form');
+        }
     </script>
 </body>
 </html>
